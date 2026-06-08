@@ -121,7 +121,7 @@ Create the following files from the examples:
 
 ```env
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD=secret
+POSTGRES_PASSWORD=change-me
 POSTGRES_DB=postgres
 ```
 
@@ -139,7 +139,7 @@ This domain is injected into the Nginx templates to generate the public hostname
 
 ```env
 GF_SECURITY_ADMIN_USER=admin
-GF_SECURITY_ADMIN_PASSWORD=secret
+GF_SECURITY_ADMIN_PASSWORD=change-me
 GF_SERVER_ROOT_URL=https://grafana.example.com
 GF_SERVER_SERVE_FROM_SUB_PATH=true
 ```
@@ -205,7 +205,7 @@ This keeps each workload isolated while still sharing the same ingress and monit
 
 ## Security Considerations
 
-- Replace the sample passwords before exposing the stack publicly.
+- Replace the sample passwords and IDs before exposing the stack publicly.
 - Use real TLS certificates, not self-signed certs, for public deployments.
 - Treat `service-account-key.json` as a secret and keep it outside git.
 - Restrict access to Portainer and Grafana if they should not be internet-facing.
