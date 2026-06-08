@@ -1,10 +1,10 @@
-version: '3'
-
 services:
   prometheus:
     image: prom/prometheus
+    restart: unless-stopped
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
     networks:
       - internal-net
 
@@ -25,6 +25,7 @@ services:
       - internal-net
 
 volumes:
+  prometheus_data:
   grafana_data:
 
 networks:

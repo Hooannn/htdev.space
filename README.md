@@ -94,6 +94,7 @@ Notes:
 ## Configure Local Secrets
 
 The Compose files reference local config files that are intentionally not committed.
+If you want to scaffold the missing local files in one shot, run `scripts/bootstrap-local-config.sh`.
 
 ### Eventbox
 

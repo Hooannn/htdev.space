@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   eventbox-server:
     image: hoanthui123/eventbox-springboot:v8.5

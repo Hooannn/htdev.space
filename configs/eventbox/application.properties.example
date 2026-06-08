@@ -1,0 +1,4 @@
+# Copy this file to configs/eventbox/application.properties and fill in the real application settings.
+# Keep secrets out of git.
+
+server.port=8080
