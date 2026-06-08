@@ -1,0 +1,21 @@
+version: '3.9'
+
+services:
+  nginx-proxy:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    env_file:
+      - ../configs/ingress/.env.nginx
+    volumes:
+      - ../configs/ingress/certs:/etc/nginx/certs:ro 
+      - ./templates:/etc/nginx/templates
+    networks:
+      - web-shared-net
+    restart: always
+
+networks:
+  web-shared-net:
+    external: true
+    name: web-network

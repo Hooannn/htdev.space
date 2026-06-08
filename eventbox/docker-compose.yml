@@ -1,0 +1,80 @@
+version: "3.9"
+
+services:
+  eventbox-server:
+    image: hoanthui123/eventbox-springboot:v8.5
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./../configs/eventbox/certs:/app/src/main/resources/certs
+      - ./../configs/eventbox/service-account-key.json:/app/service-account-key.json
+      - ./../configs/eventbox/application.properties:/app/config/application.properties
+    command:
+      - "java"
+      - "-Duser.timezone=Asia/Ho_Chi_Minh"
+      - "-jar"
+      - "/app/app.jar"
+      - "--spring.config.location=/app/config/application.properties"
+    networks:
+        - web-shared-net
+        - internal-net
+
+  postgres:
+    image: postgres:16
+    environment:
+      TZ: Asia/Ho_Chi_Minh
+    env_file:
+      - ./../configs/eventbox/.env.eventbox
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+        - internal-net
+
+  redis:
+    image: redis:7
+    volumes:
+      - redis_data:/data
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    env_file:
+      - ./../configs/eventbox/.env.eventbox
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+        - internal-net
+
+  sentiment-service:
+    image: hoanthui123/eventboxsentiment:latest
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c 'import urllib.request; urllib.request.urlopen(\"http://127.0.0.1:8000/health\").read()'",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    networks:
+        - internal-net
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  web-shared-net:
+    external: true
+    name: web-network
+  internal-net:
+    driver: bridge
