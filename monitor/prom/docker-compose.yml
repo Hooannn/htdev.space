@@ -25,6 +25,8 @@ services:
       - ../../configs/monitor/.env.grafana
     volumes:
       - grafana_data:/var/lib/grafana
+      - ../../configs/monitor/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../../configs/monitor/grafana/dashboards:/var/lib/grafana/dashboards:ro
     healthcheck:
       test:
         [

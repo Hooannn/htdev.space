@@ -63,6 +63,14 @@ Internal-only services:
 │   ├── prom/
 │   │   ├── docker-compose.yml
 │   │   └── prometheus.yml
+│   ├── grafana/
+│   │   ├── dashboards/
+│   │   │   └── .gitkeep
+│   │   └── provisioning/
+│   │       ├── dashboards/
+│   │       │   └── dashboards.yml
+│   │       └── datasources/
+│   │           └── prometheus.yml
 │   └── portainer/
 │       └── docker-compose.yml
 └── kickoff.sh
@@ -114,6 +122,7 @@ Create the following files from the examples:
 ### Monitoring
 
 - `configs/monitor/.env.grafana` from `configs/monitor/.env.example`
+- Grafana provisioning files under `configs/monitor/grafana/`
 
 ## Environment Variables
 
@@ -182,6 +191,7 @@ The templates also answer on the `www.` subdomains for each host.
 
 - Prometheus scrapes `node-exporter:9100`
 - Grafana stores data in a named Docker volume
+- Grafana is provisioned with a default Prometheus datasource
 - Portainer is mounted directly to the Docker socket for cluster management
 - Each service in the stack includes a Docker healthcheck, and `eventbox-server` is considered healthy when `GET /public/api/v1/configs/client-config` returns `200`
 
