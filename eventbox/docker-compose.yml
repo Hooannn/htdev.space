@@ -15,6 +15,16 @@ services:
       - "-jar"
       - "/app/app.jar"
       - "--spring.config.location=/app/config/application.properties"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "if command -v curl >/dev/null 2>&1; then curl -fsS http://127.0.0.1:8080/public/api/v1/configs/client-config >/dev/null; elif command -v wget >/dev/null 2>&1; then wget -q -O /dev/null http://127.0.0.1:8080/public/api/v1/configs/client-config; else exit 1; fi",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
     networks:
         - web-shared-net
         - internal-net
@@ -29,6 +39,12 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     networks:
         - internal-net
 

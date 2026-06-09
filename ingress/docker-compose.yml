@@ -9,6 +9,12 @@ services:
     volumes:
       - ../configs/ingress/certs:/etc/nginx/certs:ro 
       - ./templates:/etc/nginx/templates
+    healthcheck:
+      test: ["CMD-SHELL", "nginx -t"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
     networks:
       - web-shared-net
     restart: always

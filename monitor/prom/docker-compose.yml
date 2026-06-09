@@ -5,6 +5,16 @@ services:
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "if command -v curl >/dev/null 2>&1; then curl -fsS http://127.0.0.1:9090/-/ready >/dev/null; elif command -v wget >/dev/null 2>&1; then wget -q -O /dev/null http://127.0.0.1:9090/-/ready; else exit 1; fi",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     networks:
       - internal-net
 
@@ -14,6 +24,16 @@ services:
       - ../../configs/monitor/.env.grafana
     volumes:
       - grafana_data:/var/lib/grafana
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "if command -v curl >/dev/null 2>&1; then curl -fsS http://127.0.0.1:3000/api/health >/dev/null; elif command -v wget >/dev/null 2>&1; then wget -q -O /dev/null http://127.0.0.1:3000/api/health; else exit 1; fi",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
     networks:
       - web-shared-net
       - internal-net
@@ -21,6 +41,16 @@ services:
 
   node-exporter:
     image: prom/node-exporter
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "if command -v curl >/dev/null 2>&1; then curl -fsS http://127.0.0.1:9100/metrics >/dev/null; elif command -v wget >/dev/null 2>&1; then wget -q -O /dev/null http://127.0.0.1:9100/metrics; else exit 1; fi",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
     networks:
       - internal-net
 

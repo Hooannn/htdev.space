@@ -183,6 +183,7 @@ The templates also answer on the `www.` subdomains for each host.
 - Prometheus scrapes `node-exporter:9100`
 - Grafana stores data in a named Docker volume
 - Portainer is mounted directly to the Docker socket for cluster management
+- Each service in the stack includes a Docker healthcheck, and `eventbox-server` is considered healthy when `GET /public/api/v1/configs/client-config` returns `200`
 
 ## Extending The Stack
 
