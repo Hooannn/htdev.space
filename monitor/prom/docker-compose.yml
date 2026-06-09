@@ -20,6 +20,7 @@ services:
 
   grafana:
     image: grafana/grafana
+    restart: unless-stopped
     env_file:
       - ../../configs/monitor/.env.grafana
     volumes:
@@ -41,6 +42,7 @@ services:
 
   node-exporter:
     image: prom/node-exporter
+    restart: unless-stopped
     healthcheck:
       test:
         [
@@ -53,6 +55,28 @@ services:
       start_period: 10s
     networks:
       - internal-net
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.51.0
+    restart: unless-stopped
+    privileged: true
+    networks:
+      - internal-net
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "if command -v wget >/dev/null 2>&1; then wget -q -O /dev/null http://127.0.0.1:8080/healthz; elif command -v curl >/dev/null 2>&1; then curl -fsS http://127.0.0.1:8080/healthz >/dev/null; else exit 1; fi",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
 volumes:
   prometheus_data:
