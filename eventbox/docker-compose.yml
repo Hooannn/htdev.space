@@ -2,6 +2,13 @@ services:
   eventbox-server:
     image: hoanthui123/eventbox-springboot:v8.5
     restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      sentiment-service:
+        condition: service_healthy
     environment:
       - TZ=Asia/Ho_Chi_Minh
     volumes:

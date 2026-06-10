@@ -21,6 +21,9 @@ services:
   grafana:
     image: grafana/grafana
     restart: unless-stopped
+    depends_on:
+      prometheus:
+        condition: service_healthy
     env_file:
       - ../../configs/monitor/.env.grafana
     volumes:
