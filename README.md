@@ -65,8 +65,12 @@ Internal-only services:
 │   │   └── prometheus.yml
 │   ├── grafana/
 │   │   ├── dashboards/
-│   │   │   └── .gitkeep
+│   │   │   └── node-exporter-overview.json
 │   │   └── provisioning/
+│   │       ├── alerting/
+│   │       │   ├── contact-points.yml
+│   │       │   ├── cpu-usage-alert.yml
+│   │       │   └── notification-policies.yml
 │   │       ├── dashboards/
 │   │       │   └── dashboards.yml
 │   │       └── datasources/
@@ -150,7 +154,9 @@ This domain is injected into the Nginx templates to generate the public hostname
 GF_SECURITY_ADMIN_USER=admin
 GF_SECURITY_ADMIN_PASSWORD=change-me
 GF_SERVER_ROOT_URL=https://grafana.example.com
-GF_SERVER_SERVE_FROM_SUB_PATH=true
+GF_SERVER_SERVE_FROM_SUB_PATH=false
+GRAFANA_TELEGRAM_BOT_TOKEN=change-me
+GRAFANA_TELEGRAM_CHAT_ID=change-me
 ```
 
 ## Networking
@@ -192,6 +198,8 @@ The templates also answer on the `www.` subdomains for each host.
 - Prometheus scrapes `node-exporter:9100`
 - Grafana stores data in a named Docker volume
 - Grafana is provisioned with a default Prometheus datasource
+- Grafana is provisioned with a default Node Exporter dashboard
+- Grafana is provisioned with a CPU usage alert that routes to Telegram
 - Portainer is mounted directly to the Docker socket for cluster management
 - Each service in the stack includes a Docker healthcheck, and `eventbox-server` is considered healthy when `GET /public/api/v1/configs/client-config` returns `200`
 
