@@ -8,7 +8,7 @@ groups:
     rules:
       - uid: node-cpu-usage-high
         title: CPU usage above 80 percent
-        condition: B
+        condition: C
         data:
           - refId: A
             datasourceUid: prometheus
