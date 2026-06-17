@@ -1,6 +1,6 @@
 services:
   eventbox-server:
-    image: hoanthui123/eventbox-springboot:v8.5
+    image: hoanthui123/eventbox-springboot:v8.6
     restart: unless-stopped
     depends_on:
       postgres:
