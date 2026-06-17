@@ -1,5 +1,6 @@
 .env.*
 !.env.example
 *.pem
+*.pk
 configs/eventbox/service-account-key.json
 configs/eventbox/application.properties

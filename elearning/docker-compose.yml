@@ -1,0 +1,150 @@
+services:
+  elearning-client:
+    image: hoanthui123/coconutclient:latest
+    env_file:
+      - ./../configs/elearning/.env.elearning
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:4173/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+    networks:
+        - web-shared-net
+        - internal-net
+
+  elearning-server:
+    image: hoanthui123/coconutserver:latest
+    volumes:
+      - ./../configs/elearning/application.properties:/app/config/application.properties
+      - ./../configs/elearning/serviceAccountKey.json:/app/app/serviceAccountKey.json
+      - ./../configs/elearning/jitsi.pk:/app/app/src/main/resources/jitsi.pk
+    depends_on:
+      - postgres
+      - redis
+      - elasticsearch
+      - seaweedfs-master
+      - seaweedfs-volume
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+    command:
+      - "java"
+      - "-Duser.timezone=Asia/Ho_Chi_Minh"
+      - "-jar"
+      - "elearning-0.0.1-SNAPSHOT.jar"
+      - "--spring.config.location=/app/config/application.properties"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "if command -v curl >/dev/null 2>&1; then curl -fsS http://127.0.0.1:8080/public/api/v1/configs/client-config >/dev/null; elif command -v wget >/dev/null 2>&1; then wget -q -O /dev/null http://127.0.0.1:8080/public/api/v1/configs/client-config; else exit 1; fi",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+        - web-shared-net
+        - internal-net
+
+  elasticsearch:
+    image: elasticsearch:8.10.2
+    restart: unless-stopped
+    env_file:
+      - ./../configs/elearning/.env.elearning
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl --silent --fail 127.0.0.1:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+        - internal-net
+
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Ho_Chi_Minh
+    env_file:
+      - ./../configs/elearning/.env.elearning
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+        - internal-net
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    env_file:
+      - ./../configs/elearning/.env.elearning
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+        - internal-net
+
+  seaweedfs-master:
+    image: chrislusf/seaweedfs
+    restart: unless-stopped
+    volumes:
+      - seaweedfs-master_data:/data
+    command: "master -ip=master -ip.bind=0.0.0.0 -metricsPort=9324"
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "-I", "http://127.0.0.1:9333/cluster/healthz" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    networks:
+        - internal-net
+
+  seaweedfs-volume:
+    image: chrislusf/seaweedfs
+    restart: unless-stopped
+    volumes:
+      - seaweedfs-volume_data:/data
+    command: 'volume -mserver="seaweedfs-master:9333" -ip.bind=0.0.0.0 -port=8082  -metricsPort=9325'
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "-I", "http://127.0.0.1:8080/healthz" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+    depends_on:
+      seaweedfs-master:
+        condition: service_healthy
+    networks:
+        - web-shared-net
+        - internal-net
+
+volumes:
+  postgres_data:
+  redis_data:
+  seaweedfs-master_data:
+  seaweedfs-volume_data:
+  elasticsearch_data:
+
+networks:
+  web-shared-net:
+    external: true
+    name: web-network
+  internal-net:
+    driver: bridge
