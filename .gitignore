@@ -4,3 +4,7 @@
 *.pk
 configs/eventbox/service-account-key.json
 configs/eventbox/application.properties
+configs/elearning/service-account-key.json
+configs/elearning/application.properties
+service-account-key.json
+application.properties
