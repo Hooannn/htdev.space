@@ -21,7 +21,7 @@ mkdir -p "$root_dir/configs/eventbox/certs"
 mkdir -p "$root_dir/configs/ingress/certs"
 
 copy_if_missing "$root_dir/configs/eventbox/.env.example" "$root_dir/configs/eventbox/.env.eventbox"
-copy_if_missing "$root_dir/configs/elearning/.env.example" "$root_dir/configs/eventbox/.env.elearning"
+copy_if_missing "$root_dir/configs/elearning/.env.example" "$root_dir/configs/elearning/.env.elearning"
 copy_if_missing "$root_dir/configs/ingress/.env.example" "$root_dir/configs/ingress/.env.nginx"
 copy_if_missing "$root_dir/configs/monitor/.env.example" "$root_dir/configs/monitor/.env.grafana"
 copy_if_missing "$root_dir/configs/eventbox/application.properties.example" "$root_dir/configs/eventbox/application.properties"

@@ -2,11 +2,12 @@
 
 Production deployment bundle for the `htdev.space` infrastructure. This repository brings together the Docker Compose files, Nginx ingress templates, monitoring services, and bootstrap script used to provision and run the stack on a Debian-based VPS.
 
-This is designed as a reusable deployment platform, not a single-project repo. EventBox is the first workload currently deployed here, but the same pattern can be extended to host additional applications and services over time.
+This is designed as a reusable deployment platform, not a single-project repo. EventBox and Elearning are the first workloads currently deployed here, and the same pattern can be extended to host additional applications and services over time.
 
 ## What’s in here
 
 - `eventbox/` - runtime for the Eventbox application stack
+- `elearning/` - runtime for the Elearning application stack
 - `ingress/` - Nginx reverse proxy and TLS termination
 - `monitor/` - Grafana, Prometheus, Node Exporter, and Portainer
 - `configs/` - local-only configuration and secret examples
@@ -21,6 +22,9 @@ Internet
 Nginx ingress (80/443)
   |---------------------> eventboxserver.${DOMAIN}
   |---------------------> eventboxsocket.${DOMAIN}
+  |---------------------> elearningserver.${DOMAIN}
+  |---------------------> elearningsocket.${DOMAIN}
+  |---------------------> elearningfile.${DOMAIN}
   |---------------------> grafana.${DOMAIN}
   |---------------------> portainer.${DOMAIN}
   |
@@ -37,6 +41,8 @@ Internal-only services:
 - Prometheus
 - Node Exporter
 - sentiment-service
+- Elasticsearch
+- SeaweedFS
 ```
 
 ## Repository Layout
@@ -49,12 +55,20 @@ Internal-only services:
 │   │   ├── application.properties
 │   │   ├── certs/
 │   │   └── service-account-key.json
+│   ├── elearning/
+│   │   ├── .env.example
+│   │   ├── application.properties.example
+│   │   ├── jitsi.pk.example
+│   │   ├── service-account-key.json.example
+│   │   └── certs/
 │   ├── ingress/
 │   │   ├── .env.example
 │   │   └── certs/
 │   └── monitor/
 │       └── .env.example
 ├── eventbox/
+│   └── docker-compose.yml
+├── elearning/
 │   └── docker-compose.yml
 ├── ingress/
 │   ├── docker-compose.yml
@@ -87,6 +101,7 @@ Internal-only services:
 - A domain name pointing to the server
 - TLS certificates placed in `configs/ingress/certs/`
 - Eventbox runtime config in `configs/eventbox/`
+- Elearning runtime config in `configs/elearning/`
 - A Docker network named `web-network`
 
 ## Bootstrap the Host
@@ -117,6 +132,16 @@ Create the following files from the examples:
 - `configs/eventbox/service-account-key.json`
 - `configs/eventbox/certs/`
 
+### Elearning
+
+Create the following files from the examples:
+
+- `configs/elearning/.env.elearning` from `configs/elearning/.env.example`
+- `configs/elearning/application.properties` from `configs/elearning/application.properties.example`
+- `configs/elearning/service-account-key.json` from `configs/elearning/service-account-key.json.example`
+- `configs/elearning/jitsi.pk` from `configs/elearning/jitsi.pk.example`
+- `configs/elearning/certs/`
+
 ### Ingress
 
 - `configs/ingress/.env.nginx` from `configs/ingress/.env.example`
@@ -139,6 +164,16 @@ POSTGRES_DB=postgres
 ```
 
 These values are used by the Postgres container in `eventbox/docker-compose.yml`.
+
+### `configs/elearning/.env.elearning`
+
+```env
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=change-me
+POSTGRES_DB=postgres
+```
+
+These values are used by the Postgres container in `elearning/docker-compose.yml`, along with the shared Redis and Elasticsearch services in the same stack.
 
 ### `configs/ingress/.env.nginx`
 
@@ -184,6 +219,7 @@ Start each Compose project from its own directory:
 
 ```bash
 docker compose -f eventbox/docker-compose.yml up -d
+docker compose -f elearning/docker-compose.yml up -d
 docker compose -f monitor/prom/docker-compose.yml up -d
 docker compose -f monitor/portainer/docker-compose.yml up -d
 docker compose -f ingress/docker-compose.yml up -d
@@ -197,6 +233,9 @@ Once DNS and TLS are in place, the ingress layer exposes:
 
 - `https://eventboxserver.${DOMAIN}`
 - `https://eventboxsocket.${DOMAIN}`
+- `https://elearningserver.${DOMAIN}`
+- `https://elearningsocket.${DOMAIN}`
+- `https://elearningfile.${DOMAIN}`
 - `https://grafana.${DOMAIN}`
 - `https://portainer.${DOMAIN}`
 
@@ -211,6 +250,8 @@ The templates also answer on the `www.` subdomains for each host.
 - Grafana is provisioned with a CPU usage alert that routes to Telegram
 - Portainer is mounted directly to the Docker socket for cluster management
 - Each service in the stack includes a Docker healthcheck, and `eventbox-server` is considered healthy when `GET /public/api/v1/configs/client-config` returns `200`
+- `elearning-server` is considered healthy when `GET /swagger-ui/index.html` returns `200`
+- `seaweedfs-volume` is considered healthy when `GET http://127.0.0.1:8082/status` returns `200`
 
 ## Extending The Stack
 
@@ -227,6 +268,7 @@ This keeps each workload isolated while still sharing the same ingress and monit
 ## Notes
 
 - The Eventbox stack pulls prebuilt images from Docker Hub.
+- The Elearning stack pulls prebuilt images from Docker Hub and exposes `elearningserver`, `elearningsocket`, and `elearningfile` through ingress.
 - `eventbox-server` runs with `application.properties` mounted from the host.
 - `sentiment-service` includes a health check that expects `http://127.0.0.1:8000/health`.
 - Sensitive files and generated certificates are excluded from version control through `.gitignore`.
