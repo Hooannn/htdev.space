@@ -1,23 +1,9 @@
 services:
-  elearning-client:
-    image: hoanthui123/coconutclient:latest
-    env_file:
-      - ./../configs/elearning/.env.elearning
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:4173/"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 15s
-    networks:
-        - web-shared-net
-        - internal-net
-
   elearning-server:
     image: hoanthui123/coconutserver:latest
     volumes:
       - ./../configs/elearning/application.properties:/app/config/application.properties
-      - ./../configs/elearning/serviceAccountKey.json:/app/app/serviceAccountKey.json
+      - ./../configs/elearning/service-account-key.json:/app/app/serviceAccountKey.json
       - ./../configs/elearning/jitsi.pk:/app/app/src/main/resources/jitsi.pk
     depends_on:
       - postgres
@@ -34,11 +20,7 @@ services:
       - "elearning-0.0.1-SNAPSHOT.jar"
       - "--spring.config.location=/app/config/application.properties"
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "if command -v curl >/dev/null 2>&1; then curl -fsS http://127.0.0.1:8080/public/api/v1/configs/client-config >/dev/null; elif command -v wget >/dev/null 2>&1; then wget -q -O /dev/null http://127.0.0.1:8080/public/api/v1/configs/client-config; else exit 1; fi",
-        ]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:8080/swagger-ui/index.html"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -123,7 +105,7 @@ services:
       - seaweedfs-volume_data:/data
     command: 'volume -mserver="seaweedfs-master:9333" -ip.bind=0.0.0.0 -port=8082  -metricsPort=9325'
     healthcheck:
-      test: [ "CMD", "curl", "--fail", "-I", "http://127.0.0.1:8080/healthz" ]
+      test: [ "CMD", "curl", "--fail", "-I", "http://127.0.0.1:8082/status" ]
       interval: 30s
       timeout: 10s
       retries: 5
